@@ -12,6 +12,52 @@ uid     date    reference   category    user	asset   amount  xuser	xasset  xamou
 4       1/1     1           trade       2	btc     -1      1	usd     +100    cleared 
     
 
+=======
+SYMBOLS
+-------
+Silver Bullion .999 Pure -1ozt (Will be settled via bar and/or rounds in varying sizes according to order)
+Silver Bullion 1oz Rounds 
+Silver Government Coin .999 Pure (Mexico Libertad, Austria Philharmonic, Australia)
+Silver Coin .90 Pure  -$1 face
+Silver American Eagle
+Silver Canadian Maple 
+
+B-Bar
+R-Round
+
+G-Au
+S-Ag
+
+Roman:
+I -1
+V -5
+X -10
+L -50
+C -100
+D -500
+M -1000
+
+Various Types Nucl:
+G Am Eagle 1oz
+GAE .1oz
+American Gold Buffalo
+Chinese Panda Gold
+GCM -can mapl
+Gold Bar
+G Krugerrand
+SAE
+SAE 500
+Austrian Silver Philharmonic
+Bullion Bar 100oz
+Bullion Bar 10oz
+Can Maple Platinum
+Pallidum Bullion
+Gold Bullion Bar 100g
+Silver Bullion Bar 100oz
+Canada Maple Leaf Silver
+
+
+
 
 =============
 CALCULATING PORTFOLIO
