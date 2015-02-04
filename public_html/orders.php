@@ -75,8 +75,7 @@ render("orders_form.php", [
     "title" => $title, 
     "tabletitle" => $tabletitle, 
     "orders" => $orders,  
-    "ordertotal" => $ordertotal, 
-    "history" => $history
+    "ordertotal" => $ordertotal
     ]);
 
 ?>
