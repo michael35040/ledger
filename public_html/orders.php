@@ -11,7 +11,6 @@ $option2 = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST")// if form is submitted
 {
-    
     if (isset($_POST["symbol"]))
     {
         $symbol = $_POST["symbol"];
@@ -63,12 +62,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST")// if form is submitted
     }
     
 }
-/*
-else
-{
 
-} //else !post , 
-*/
 $orders = query("SELECT * FROM orderbook WHERE (id = ? $option) ORDER BY uid DESC $limit", $id);
 $ordertotal = query("SELECT SUM(total) AS sumtotal FROM orderbook WHERE (id = ? $option)", $id);
 render("orders_form.php", [
