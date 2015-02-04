@@ -32,7 +32,7 @@ else
 {
     $assets =	query("SELECT symbol FROM assets ORDER BY symbol ASC");	  // query user's portfolio
 
-    $stocksQ = query("SELECT symbol, quantity FROM portfolio WHERE id = ? ORDER BY symbol ASC", $id);	  // query user's portfolio
+    $stocksQ =	query("SELECT SUM(AMOUNT) AS quantity, symbol FROM ledger WHERE (user=? AND symbol =? and status=0)", $id, $stock["symbol"]);	  // query user's portfolio
     $stocks = []; //to send to next page
     foreach ($stocksQ as $row)		// for each of user's stocks
     {   $stock = [];
