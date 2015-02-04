@@ -2,6 +2,7 @@
 //dump all variables if i hit error
 //apologize(var_dump(get_defined_vars()));
 //throw new Exception(var_dump(get_defined_vars())); 
+//apologize(var_dump(get_defined_vars()));
 
 function transfer($payer, $payee, $quantity, $symbol)
 {
@@ -58,17 +59,11 @@ function getCommission($total)
 }
 
 
-
-
-
-//apologize(var_dump(get_defined_vars()));
-
 ////////////////////////////////////
 //PLACE ORDER
 ////////////////////////////////////
 function placeOrder($symbol, $type, $side, $quantity, $price, $id)
-{   require 'constants.php'; //for $divisor
-//apologize(var_dump(get_defined_vars()));
+{   require 'constants.php'; 
 //CHECKS INPUT
 //CHECK FOR EMPTY VARIABLES
     if(empty($symbol)) { throw new Exception("Invalid order. Trade symbol required."); } //check to see if empty
@@ -148,7 +143,7 @@ function OrderbookTop($symbol)
                 //ORDER BY FIRST UID
                 $marketOrders = query("SELECT * FROM orderbook WHERE (symbol = ? AND side = ? AND type = 'market' AND quantity>0 AND status=1) ORDER BY uid ASC LIMIT 0, 1", $symbol, 'b');
                 //ORDER BY LOWEST PRICE THEN FIRST UID
-                $asks = query("SELECT 	* FROM orderbook WHERE (symbol = ? AND side = ? AND type = 'limit' AND quantity>0 AND status=1) ORDER BY price ASC, uid ASC LIMIT 0, 1", $symbol, 'a');
+                $asks = query("SELECT * FROM orderbook WHERE (symbol = ? AND side = ? AND type = 'limit' AND quantity>0 AND status=1) ORDER BY price ASC, uid ASC LIMIT 0, 1", $symbol, 'a');
             }
             $marketOrders[0]["price"]=$asks[0]["price"]; //give it the same price so they execute
             $bids = $marketOrders;
@@ -197,7 +192,7 @@ function processOrderbook($symbol=null)
     if(empty($symbol))
     {
         //GET A QUERY OF ALL SYMBOLS FROM ASSETS
-        $symbols =	query("SELECT symbol FROM assets ORDER BY symbol ASC");
+        $symbols = query("SELECT symbol FROM assets ORDER BY symbol ASC");
 
         //to prevent stopping on error for symbol (i.e. user does not have enough funds, all user orders deleted
         $error=1;
@@ -260,12 +255,9 @@ function processOrderbook($symbol=null)
 //EXCHANGE MARKET
 ////////////////////////////////////
 function orderbook($symbol)
-{ require 'constants.php';
-//   apologize(var_dump(get_defined_vars())); //dump all variables if i hit error
+{ 
+require 'constants.php';
     if($loud!='quiet'){echo("<br>[" . $symbol . "] Computing orderbook...");}
-    //$adminid = 1;
-
-    require 'constants.php';
 
     //PROCESS MARKET ORDERS
     if(empty($symbol)){throw new Exception("No symbol selected!");}
@@ -307,6 +299,7 @@ function orderbook($symbol)
 
         if ($topBidPrice >= $topAskPrice) //TRADES ARE POSSIBLE
         { if($loud!='quiet'){echo("<br>[" . $symbol . "] Trade possible...");}
+        
             //START TRANSACTION
             query("SET AUTOCOMMIT=0");
             query("START TRANSACTION;"); //initiate a SQL transaction in case of error between transaction and commit
@@ -328,9 +321,6 @@ function orderbook($symbol)
 
             //COMMISSION AMOUNT
             $commissionAmount = getCommission($tradeAmount);
-
-
-
 
             ////////////
             //ORDERBOOK
@@ -375,11 +365,8 @@ function orderbook($symbol)
                         //CALCULATE NEW TRADEAMOUNT
                         $tradeSize = $newTradeSize;
                         $tradeAmount = ($tradePrice * $tradeSize);
-
                         //COMMISSION AMOUNT ON NEW AMOUNT
                         $commissionAmount = getCommission($tradeAmount);
-
-
                         //CHECK AGAIN WITH NEW AMOUNT
                         if ($BidUnits < ($tradeAmount+$commissionAmount)) {
                             query("ROLLBACK");
@@ -397,26 +384,24 @@ function orderbook($symbol)
                     throw new Exception("Buyer does not have enough funds. Buyers orders deleted (2)");
                 }
             }
-            
-            //UPDATE BID ORDER QUANTITY
-            if (query("UPDATE orderbook SET quantity=(quantity-?) WHERE uid=?", $tradeSize, $topBidUID) === false){query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Update OB Failure: #5"); }
 
 
-            //ASK INFO------
+            //ASK INFO------IS THIS REDUNDANT----
             $orderbookQuantity = query("SELECT quantity FROM orderbook WHERE (uid = ?)", $topAskUID);
             $orderbookQuantity = (int)$orderbookQuantity[0]["quantity"];
-            //REMOVE SHARES FROM ASK USER
             //IF SELLER TRYING TO SELL MORE THEN THEY OWN CANCEL ORDER
             if ($tradeSize > $orderbookQuantity) { query("ROLLBACK"); query("SET AUTOCOMMIT=1"); cancelOrder($topAskUID); throw new Exception("$topAskUser Seller does not have enough quantity. Seller's order deleted."); }
+
             //UPDATE ASK ORDER //REMOVE QUANTITY
             if (query("UPDATE orderbook SET quantity=(quantity-?) WHERE uid=?", $tradeSize, $topAskUID) === false){query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Size OB Failure: #3"); } //rollback on failure
+            //UPDATE BID ORDER QUANTITY
+            if (query("UPDATE orderbook SET quantity=(quantity-?) WHERE uid=?", $tradeSize, $topBidUID) === false){query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Update OB Failure: #5"); }
 
 
             ///////////
             //ACCOUNTS
             ///////////
             
-//MIGHT NEED TO MAKE THE REFERENCE/XREFERENCE LONGER IN MYSQL DB
 $referenceID=($topAskUID . $topBidUID . $tradeSize); //concatenate
 $reference=uniqid($referenceID,true);  //unique id reference to trade   
 
@@ -470,13 +455,15 @@ if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser,
             query("COMMIT;"); //If no errors, commit changes
             query("SET AUTOCOMMIT=1");
 
-//CHECK TO SEE IF ASKUID OR BIDUID ARE 0 THEN SET STATUS=0 (Completed/Cleared)
+
+//CHECK TO SEE IF ASKUID OR BIDUID ARE 0, IF SO THEN SET STATUS=0 (Completed/Cleared)
+//ADD
+//NEW
+//SECTION 
+//HERE
 
 
-            /* */
             //LAST TRADE INFO TO RETURN ON FUNCTION
-            //if ($topAskType == 'market') { $topAskPrice = 'market'; } //null//$tradePrice;}     //since the do while loop gives it the next orders price, not the last traded
-            //if ($topBidType == 'market') { $topBidPrice = 'market'; } //null// $tradePrice;}     //since the do while loop gives it the next orders price, not the last traded
             $orderbook['topAskPrice'] = ($asks[0]["price"]); //limit price
             $orderbook['topAskUID'] = ($asks[0]["uid"]);  //order id; unique id
             $orderbook['topAskSymbol'] = ($asks[0]["symbol"]); //symbol of equity
@@ -492,7 +479,6 @@ if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser,
             $orderbook['topBidDate'] = ($bids[0]["date"]);
             $orderbook['topBidType'] = ($bids[0]["type"]); //limit or market
             $orderbook['topBidSize'] = ($bids[0]["quantity"]);
-            //NO LONGER USING//$orderbook['topBidUnits'] = ($bids[0]["total"]);
             $orderbook['topBidUser'] = ($bids[0]["user"]);
             if (empty($tradePrice)) {$tradePrice = 0;} //if no trades so should be empty
             $orderbook['tradePrice'] = $tradePrice;
