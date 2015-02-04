@@ -15,6 +15,26 @@ uid     date    reference   category    user	asset   amount  xuser	xasset  xamou
 =======
 SYMBOLS
 -------
+
+billio: money of copper, or copper and silver; bullion.
+nigra moneta: copper money.
+blanci: white money, sterling.
+cambitor: an exchanger, a moneyer.
+cambium: an exchange; a mint.
+chevantia: a loan of money.
+chevicia: a loan.
+escambiator: an exchanger, money changer.
+escambio, escambium: exchange; a place for changing money.
+moneta: money; a mint.
+monetacio: coining, minting.
+monetagium: mintage, right of coining; tribute paid by tenants to the lord that he should not change the money he had coined.
+monetare: to coin; to mint.
+monetarius: a moneyer; a coiner; a banker.
+monetatio: coining.
+monetum: a mint.
+
+
+
 Silver Bullion .999 Pure -1ozt (Will be settled via bar and/or rounds in varying sizes according to order)
 Silver Bullion 1oz Rounds 
 Silver Government Coin .999 Pure (Mexico Libertad, Austria Philharmonic, Australia)
