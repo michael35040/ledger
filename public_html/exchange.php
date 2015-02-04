@@ -32,13 +32,13 @@ else
 {
     $assets =	query("SELECT symbol FROM assets ORDER BY symbol ASC");	  // query user's portfolio
 
-    $stocksQ =	query("SELECT SUM(AMOUNT) AS quantity, symbol FROM ledger WHERE (user=? AND symbol =? and status=0)", $id, $stock["symbol"]);	  // query user's portfolio
     $stocks = []; //to send to next page
-    foreach ($stocksQ as $row)		// for each of user's stocks
+    foreach ($assets as $row)		// for each of user's stocks
     {   $stock = [];
         $stock["symbol"] = $row["symbol"]; //set variable from stock info
-        $stock["quantity"] = $row["quantity"];
-        $askQuantity =	query("SELECT SUM(quantity) AS quantity FROM orderbook WHERE (id=? AND symbol =? AND side='a')", $id, $stock["symbol"]);	  // query user's portfolio
+        $stocksQ =	query("SELECT SUM(AMOUNT) AS quantity FROM ledger WHERE (user=? AND symbol =? and status=0)", $id, $assets["symbol"]);	  // query user's portfolio
+        $stock["quantity"] = $stocksQ["quantity"];
+        $askQuantity =	query("SELECT SUM(quantity) AS quantity FROM orderbook WHERE (user=? AND symbol =? AND side='a')", $id, $assets["symbol"]);	  // query user's portfolio
         $askQuantity = $askQuantity[0]["quantity"]; //shares trading
         $stock["locked"] = (int)$askQuantity;
         $stocks[] = $stock;

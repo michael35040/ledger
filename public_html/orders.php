@@ -63,13 +63,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST")// if form is submitted
     
 }
 
-$orders = query("SELECT * FROM orderbook WHERE (id = ? $option) ORDER BY uid DESC $limit", $id);
-$ordertotal = query("SELECT SUM(total) AS sumtotal FROM orderbook WHERE (id = ? $option)", $id);
+$orders = query("SELECT * FROM orderbook WHERE (user = ? $option) ORDER BY uid DESC $limit", $id);
 render("orders_form.php", [
     "title" => $title, 
     "tabletitle" => $tabletitle, 
-    "orders" => $orders,  
-    "ordertotal" => $ordertotal
+    "orders" => $orders
     ]);
 
 ?>

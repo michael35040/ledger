@@ -1,0 +1,367 @@
+<?php
+////////////////////////////////////
+//TESTING
+////////////////////////////////////
+
+function randomOrders()
+{    require 'constants.php';
+if($loud!='quiet'){echo date("Y-m-d H:i:s");
+    $startDate =  time();}
+    $ordersCreated = 0;
+    $i=0;
+    $type='limit';
+    $ordersCreated=0; //total created
+
+    //count number of users
+    $userCheck = query("SELECT count(id) as number FROM users");
+    $numberUsers=$userCheck[0]["number"];
+    if($numberUsers<3){apologize("Not enough users for trade. Requires 3.");}
+
+    $symbols =	query("SELECT symbol FROM assets ORDER BY symbol ASC");
+    foreach ($symbols as $symbol) { $symbol=$symbol['symbol'];
+        //apologize(var_dump(get_defined_vars()));
+
+
+
+        //while ($i < 26) {
+        $randomOrders=0;
+        if($loud!='quiet'){echo("<br><b>[" . $symbol . "] Placing Orders...</b>");}
+        while ($randomOrders < 50) //number of orders
+        {
+            $sideNum = mt_rand(1, 2);
+            $percent=mt_rand(95,105);$percent=$percent/100;
+            if ($sideNum == 1) {
+                $side = 'a';
+                //$price = (mt_rand(1, 1000)/100);
+                $askPrice =	query("SELECT price FROM orderbook WHERE symbol=? AND side='a' ORDER BY price ASC", $symbol);
+                if(empty($askPrice)){$price = mt_rand(1, 400) * $divisor;}
+                else{$price=getPrice($askPrice[0]["price"]);$price=$price*$percent;}
+            } else {
+                $side = 'b';
+                //$price = (mt_rand(1, 1000)/100);
+                $askPrice =	query("SELECT price FROM orderbook WHERE symbol=? AND side='a' ORDER BY price ASC", $symbol);
+                if(empty($askPrice)){$price = mt_rand(1, 400) * $divisor;}
+                else{$price=getPrice($askPrice[0]["price"]);$price=$price*$percent;}
+            }
+            if ($type == 'market') {
+                $price = 0;
+            }
+
+            $quantity = mt_rand(1, 100);
+            $id = mt_rand(2, $numberUsers);
+
+
+            try {
+                placeOrder($symbol, $type, $side, $quantity, $price, $id);
+                $total = $quantity * $price;
+                if($loud!='quiet'){echo("<br>[ID:" . $id . ", " . $symbol . ", " . $type . ", " . $side . ", $" . $price . ", x" . $quantity . ", Total: $" . $total . "]");}
+                $randomOrders++; //should be only 10 per symbol
+                $ordersCreated++; //total created
+            } //catch exception
+            catch (Exception $e) {
+                if($loud!='quiet'){echo('<br>Error: [' . $symbol . '] ' . $e->getMessage());}
+            }
+
+
+        }
+        $symbol++; //up to 26 (Z)
+        $i++; //up to 26
+    }
+    $endDate =  time();
+if($loud!='quiet') {
+    echo("<br>");
+    echo date("Y-m-d H:i:s");
+    echo("<br>");
+    $endDate = time();
+    $totalTime = $endDate - $startDate;
+    if ($totalTime == 0) {
+        $speed = $ordersCreated;
+    } //so we don't divid by 0.
+    else {
+        $speed = $ordersCreated / $totalTime;
+    }
+    echo("<br>Created " . $ordersCreated . " orders in " . $totalTime . " seconds! " . $speed . " orders/sec<br>");
+}
+    return($ordersCreated); //number of orders processed
+}
+
+
+
+function populatetrades()
+{ require 'constants.php';
+    $date=0;
+    while($date<3)
+    {
+        try {
+            $randomOrders = randomOrders();
+        } catch (Exception $e) {
+            if($loud!='quiet') {echo('Error: ' . $e->getMessage() . '<br>');}
+        }         //catch exception
+        try {
+            $processOrderbook = processOrderbook();
+        } catch (Exception $e) {
+            if($loud!='quiet') {echo('Error: ' . $e->getMessage() . '<br>');}
+        }
+        //query("UPDATE trades SET date = DATE_SUB(date, INTERVAL 1 DAY)");
+        $date++;
+    }
+}
+
+
+
+function createStocks()
+{    require 'constants.php';//for $divisor
+if($loud!='quiet') {echo("Creating Stocks");
+    echo date("Y-m-d H:i:s");
+    $startDate =  time();}
+    $lastSymbol =	query("SELECT symbol FROM assets ORDER BY symbol DESC LIMIT 0, 1");
+    if($lastSymbol==null){$symbol='A';}
+    else{$symbol = $lastSymbol[0]["symbol"]; $symbol++;}
+
+if($loud!='quiet') {echo("<br>Symbol: " . $symbol);}
+    $i=0;
+    while ($i < 7) {
+        $name=('The ' . $symbol . ' Co.');
+        $userid=mt_rand(2,3);
+        $issued = 2 * (mt_rand(1, 100) * 100000);
+        $type='stock'; //or commodity
+        $fee=(mt_rand(1,100)/100);//0.45;
+        $url=('http://www.' . $symbol . '.com');
+        $rating=mt_rand(1,10);
+        $description=('Makes a lot of ' . $symbol);
+        // publicOffering($symbol, $name, $userid, $issued, $type, $fee, $url, $rating, $description)
+        try { $publicOffering = publicOffering($symbol, $name, $userid, $issued, $type, $fee, $url, $rating, $description);
+            $quantity = $issued / 2;
+            $price = mt_rand(1, 40) * $divisor * ($issued / 2);
+            //query("INSERT INTO `portfolio` (`id`, `symbol`, `quantity`, `price`) VALUES (3, ?, ?, ?)", $symbol, $quantity, $price);
+            if($loud!='quiet') {echo("<br>Issued-[Symbol:" . $symbol . ", Quantity:" . $quantity . ", Fee:" . $fee . "]<br>");
+            echo($publicOffering);}
+            $symbol++;
+            $i++;
+        }
+        catch(Exception $e) {echo('<br>Error on Public Stock Offering: ' . $symbol . $e->getMessage());}
+    }
+if($loud!='quiet') {$endDate = time();
+    echo("<br>");
+    echo date("Y-m-d H:i:s");
+    echo("<br>");
+    $endDate = time();
+    $totalTime = $endDate - $startDate;
+    $speed = $i / $totalTime;
+    echo("<br>Issued " . $i . " stocks offerings in " . $totalTime . " seconds! " . $speed . " orders/sec<br><br>");}
+    return ($i);
+
+}
+
+
+
+
+
+
+function clear_all()
+{
+    clear_orderbook();
+    clear_trades();
+    clear_portfolio();
+    clear_history();
+    clear_assets();
+    if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            'transfer',
+            $adminid, 'XBT', 1000000, 'AAA',
+            0, 'A', 0, 'AAA',
+            0, 'initial') === false) {throw new Exception("Ledger Insert Failure"); }
+
+
+    //try {processOrderbook();}
+    //catch exception
+    //catch(Exception $e) {echo 'Message: ' .$e->getMessage();}
+
+}
+
+function test()
+{ require 'constants.php';
+    clear_orderbook();
+    clear_trades();
+    clear_portfolio();
+    clear_history();
+    clear_assets();
+    $units = setPrice(1000000);
+    if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            'transfer',
+            1, 'XBT', 1000000, 'AAA',
+            0, 'A', 0, 'AAA',
+            0, 'initial') === false) {throw new Exception("Ledger Insert Failure"); }
+    if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            'transfer',
+            2, 'XBT', 1000000, 'AAA',
+            0, 'A', 0, 'AAA',
+            0, 'initial') === false) {throw new Exception("Ledger Insert Failure"); }
+    if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            'transfer',
+            3, 'XBT', 1000000, 'AAA',
+            0, 'A', 0, 'AAA',
+            0, 'initial') === false) {throw new Exception("Ledger Insert Failure"); }
+    if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            'transfer',
+            4, 'XBT', 1000000, 'AAA',
+            0, 'A', 0, 'AAA',
+            0, 'initial') === false) {throw new Exception("Ledger Insert Failure"); }
+
+
+
+
+
+
+
+
+    //BITCOIN $350/31
+    if($unittype!='XBT')
+    {
+        publicOffering('XBT', 'Bitcoin', 1, 100000, 'cryptocurrency', 0.5, 'http://en.wikipedia.org/wiki/Bitcoin', 10, 'Each unit represents 1 Bit if Bitcoin (BTC) (100 Satoshi). Conversion: 1 Bit (0.01 BTC) = 1 million Satoshi; 1 BTC = 100 million Satashi; 1 Satoshi = 0.00000001');
+        placeOrder('XBT', 'limit', 'b', 1000, 300, 1);
+        placeOrder('XBT', 'limit', 'a', 100000, 400, 1);
+    }
+
+
+    // $ Dollar
+    if($unittype!='USD')
+    {
+        publicOffering('USD', 'U.S. Dollar', 1, 100000, 'currency', 0.5, 'http://en.wikipedia.org/wiki/Dollar', 10, 'Each unit represents $1 Dollar; USD - U.S. Dollar (United States)');
+        placeOrder('USD', 'limit', 'b', 1000, 34, 1);
+        placeOrder('USD', 'limit', 'a', 100000, 36, 1);
+    }
+
+    //XRP RIPPLE $1.0/1.5
+    publicOffering('XRP', 'Ripple', 1, 100000, 'cryptocurrency', 0.5, 'https://ripple.com/', 10, 'Each unit represents 1 Ripple.');
+    placeOrder('XRP', 'limit', 'b', 1000, 300, 1);
+    placeOrder('XRP', 'limit', 'a', 100000, 400, 1);
+
+    //XST STELLAR $1.25/1.75
+    publicOffering('XST', 'Stellar', 1, 100000, 'cryptocurrency', 0.5, 'https://www.stellar.org/', 10, 'Each unit represents 1 Stellar');
+    placeOrder('XST', 'limit', 'b', 1000, 300, 1);
+    placeOrder('XST', 'limit', 'a', 100000, 400, 1);
+
+    //GOLD $1200/1300
+    publicOffering('XAU', 'Gold', 1, 10000, 'commodity', 0.5, 'http://en.wikipedia.org/wiki/Gold', 10, 'Each unit represents 1 gram of 99.9% fine Gold (Au). Conversion: 1 gram = 0.0321507466 troy ounce; 1 troy ounce = 31.1034768 grams');
+    placeOrder('XAU', 'limit', 'b', 1000, 14, 1);
+    placeOrder('XAU', 'limit', 'a', 10000, 15, 1);
+
+    //SILVER $17/31
+    publicOffering('XAG', 'Silver', 1, 100000, 'commodity', 0.5, 'http://en.wikipedia.org/wiki/Silver', 10, 'Each unit represents 1 gram of 99.9% fine Silver (Ag). Conversion: 1 gram = 0.0321507466 troy ounce; 1 troy ounce = 31.1034768 grams');
+    placeOrder('XAG', 'limit', 'b', 1000, 15, 1);
+    placeOrder('XAG', 'limit', 'a', 100000, 19, 1);
+
+    //COPPER $4/31
+    publicOffering('XCU', 'Copper', 1, 1000000, 'commodity', 0.5, 'http://en.wikipedia.org/wiki/Copper', 10, 'Each unit represents 1 gram of 99.9% fine Copper (Cu). Conversion: 1 gram = 0.0321507466 troy ounce; 1 troy ounce = 31.1034768 grams');
+    placeOrder('XCU', 'limit', 'b', 1000, 3, 1);
+    placeOrder('XCU', 'limit', 'a', 1000000, 4, 1);
+
+    // € Euro
+    publicOffering('EUR', 'Euro', 1, 100000, 'currency', 0.5, 'http://en.wikipedia.org/wiki/Euro', 10, 'Each unit represents &euro; 1 Euro. EUR - Euro (Euro Member Countries)');
+    placeOrder('EUR', 'limit', 'b', 1000, 60, 1);
+    placeOrder('EUR', 'limit', 'a', 100000, 65, 1);
+
+    // £ Pound
+    publicOffering('GBP', 'British Pound', 1, 20000, 'currency', 0.5, 'http://en.wikipedia.org/wiki/Pound_(currency)', 10, 'Each unit represents &pound; 1 Pound. GBP - British Pound Sterling (United Kingdom)');
+    placeOrder('GBP', 'limit', 'b', 1000, 10, 1);
+    placeOrder('GBP', 'limit', 'a', 20000, 13, 1);
+
+    // ₹ Rupee
+    publicOffering('INR', 'Indian Rupee', 1, 50000, 'currency', 0.5, 'http://en.wikipedia.org/wiki/Rupee', 10, 'Each unit represents &#x20B9; 1 Rupee. INR - Indian Rupee (India)');
+    placeOrder('INR', 'limit', 'b', 1000, 1.5, 1);
+    placeOrder('INR', 'limit', 'a', 50000, 1.9, 1);
+
+    // ¥ Yuan
+    publicOffering('CNY', 'Chinese Yuan Renminbi', 1, 5000, 'currency', 0.5, 'http://en.wikipedia.org/wiki/Yuan', 10, 'Each unit represents &yen; 1 Yuan. CNY - Chinese Yuan Renminbi (China)');
+    placeOrder('CNY', 'limit', 'b', 1000, 25, 1);
+    placeOrder('CNY', 'limit', 'a', 5000, 30, 1);
+
+    // ¥ Yen
+    publicOffering('JPY', 'Japanese Yen', 1, 10000, 'currency', 0.5, 'http://en.wikipedia.org/wiki/Yen', 10, 'Each unit represents &yen; 1 Yen. JPY - Japanese Yen (Japan)');
+    placeOrder('JPY', 'limit', 'b', 1000, 0.3, 1);
+    placeOrder('JPY', 'limit', 'a', 10000, 0.4, 1);
+
+    //PULWAR $35/31
+    publicOffering('PWR', 'Pulwar Group, Inc.', 1, 1000000, 'stock', 0.5, 'http://pulwar.com', 10, 'Each unit represents 1 share of the Pulwar Group.');
+    placeOrder('PWR', 'limit', 'b', 1000, 11, 1);
+    placeOrder('PWR', 'limit', 'a', 1000000, 13, 1);
+
+    //try {processOrderbook();}
+    //catch exception
+    //catch(Exception $e) {echo 'Message: ' .$e->getMessage();}
+
+}
+
+function clear_orderbook()
+{
+    if (query("TRUNCATE TABLE `orderbook`") === false)
+    {echo("Database orderbook Failure");}
+}
+
+function clear_assets()
+{
+    if (query("TRUNCATE TABLE `assets`") === false)
+    {echo("<br>Database orderbook Failure");}
+}
+
+function clear_trades()
+{
+    if (query("TRUNCATE TABLE `trades`") === false)
+        if (query("TRUNCATE TABLE `trades`") === false)
+        {echo("<br>Database trades Failure");}
+}
+
+function clear_portfolio()
+{
+    if (query("TRUNCATE TABLE `portfolio`") === false)
+    {echo("<br>Database portfolio Failure");}
+}
+
+function clear_history()
+{
+    if (query("TRUNCATE TABLE `history`") === false)
+    {echo("<br>Database history Failure");}
+}
+
+
+
+//used for stock charts for realistic stock lines
+function randomStocks()
+{
+    $prefix = '';
+    echo("[\n");
+    for ($i = 0; $i < 1000; $i++)
+    {
+        $date = new DateTime();
+        $date = $date->getTimestamp();
+        $date *= 1000;//convert to unix then to milliseconds IOT pass to Javascript
+        $date -= ($i *1000 * 60 * 5);
+        $a = ((rand(0,1) * (40 + $i) ) + 100 + $i);
+        $b = (rand(1, 10000));
+        echo $prefix . " {\n";
+        echo '  "date": "' . $date . '",' . "\n";
+        echo '  "price": ' . $a . ',' . "\n";
+        echo '  "size": ' . $b . '' . "\n";
+        echo " }";
+        $prefix = ",\n";
+    }
+    echo "\n]";
+
+}
+function testNumbers()
+{   $i=0;
+    while ($i<100){
+        $bid = ((mt_rand(0,1) * (40 + $i) ) + 100 + $i + mt_rand(1,50));
+        $ask = ((mt_rand(0,1) * (40 + $i) ) + 100 + $i + mt_rand(75,100));
+        echo($ask);
+        echo($bid);
+    }
+}
+
+
+?>

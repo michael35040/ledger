@@ -1,8 +1,9 @@
 
 
 
-
-
+<?php
+$ledger = query("SELECT * FROM ledger");
+?>
 
 
 <table class="table table-striped table-condensed table-bordered" >
@@ -25,12 +26,10 @@
         <td><strong>Note</strong></td>
     </tr>
     <?php
-    foreach ($legder as $row)
+    foreach ($ledger as $row)
     {
         $uid = $row["uid"];
-        $date = $row["date"];
-        // $date = date("Y,n,j", $row["date"]); //date('Y-m-d H:i:s', strtotime($row["date"]))
-        // $date = htmlspecialchars(date('Y-m-d H:i:s', strtotime($row["date"])));
+        $date = $row["date"];// $date = date("Y,n,j", $row["date"]); //date('Y-m-d H:i:s', strtotime($row["date"]))     // $date = htmlspecialchars(date('Y-m-d H:i:s', strtotime($row["date"])));
         $category = $row["category"];
         $user = $row["user"];
         $symbol = strtoupper($row["symbol"]);
@@ -48,13 +47,15 @@
         <tr>
             <td><?php echo(number_format($uid, 0, '.', ',')); ?></span></td>
             <td><?php echo(htmlspecialchars($date)); ?></td>
-            <td><?php echo(number_format($user, 0, '.', ',')); ?></span></td>
-            <td><?php echo(htmlspecialchars($reference)); ?></td>
             <td><?php echo(htmlspecialchars($category)); ?></td>
+            <td><?php echo(number_format($user, 0, '.', ',')); ?></span></td>
             <td><?php echo(htmlspecialchars($symbol)); ?></td>
             <td><?php echo(number_format($amount, 2, '.', ',')); ?></span></td>
+            <td><?php echo(htmlspecialchars($reference)); ?></td>
+            <td><?php echo(number_format($xuser, 0, '.', ',')); ?></span></td>
             <td><?php echo(htmlspecialchars($xsymbol)); ?></td>
             <td><?php echo(number_format($xamount, 2, '.', ',')); ?></span></td>
+            <td><?php echo(htmlspecialchars($xreference)); ?></td>
             <td><?php echo(htmlspecialchars($status)); ?></td>
             <td><?php echo(htmlspecialchars($note)); ?></td>
         </tr>
