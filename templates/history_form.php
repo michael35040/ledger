@@ -39,10 +39,19 @@
 
     <tr   class="active" >
 
-        <th>#</th>
-        <th>Transaction</th>
+        <th>UID</th>
         <th>Date/Time (Y/M/D)</th>
+        <th>Category</th>
+        <th>User</th>
+        <th>Symbol</th>
         <th>Amount</th>
+        <th>Reference</th>
+        <th>X-User</th>
+        <th>X-Symbol</th>
+        <th>X-Amount</th>
+        <th>X-Reference</th>
+        <th>Status</th>
+        <th>Note</th>
     </tr>
 
     <?php
@@ -53,42 +62,25 @@
 
         echo("<tr>");
         echo("<td>" . htmlspecialchars($row["uid"]) . "</td>");
-        echo("<td>" . htmlspecialchars($row["transaction"]));
-                if($row["transaction"]=='TRANFER'){echo(" (" . htmlspecialchars($row["counterparty"]) . ")");}
-
-	echo("</td>");
         echo("<td>" . htmlspecialchars(date('Y-m-d H:i:s',strtotime($row["date"]))) . "</td>");
-        //echo("<td>" . htmlspecialchars(strtoupper($row["symbol"])) . "</td>");
-        //echo("<td>" . htmlspecialchars($row["quantity"]) . "</td>");
-        //echo("<td>" . $unitsymbol . (number_format($price,$decimalplaces,".",",")) . "</td>");
-        echo("<td>" . $unitsymbol . (number_format($total,$decimalplaces,".",",")) . "</td>");
+        echo("<td>" . htmlspecialchars($row["category"]) . "</td>");
+        echo("<td>" . htmlspecialchars($row["user"]) . "</td>");
+        echo("<td>" . htmlspecialchars(strtoupper($row["symbol"])) . "</td>");
+        echo("<td>" . $unitsymbol . (number_format($row["amount"],$decimalplaces,".",",")) . "</td>");
+        echo("<td>" . htmlspecialchars($row["reference"]) . "</td>");
+        echo("<td>" . htmlspecialchars($row["xuser"]) . "</td>");
+        echo("<td>" . htmlspecialchars(strtoupper($row["xsymbol"])) . "</td>");
+        echo("<td>" . $unitsymbol . (number_format($row["xamount"],$decimalplaces,".",",")) . "</td>");
+        echo("<td>" . htmlspecialchars($row["xreference"]) . "</td>");
+        echo("<td>" . htmlspecialchars($row["status"]) . "</td>");
+        echo("<td>" . htmlspecialchars($row["note"]) . "</td>");
         echo("</tr>");
     }
-    if($history==null){echo('<td colspan="7">None</td>');}
+    if($history==null){echo('<td colspan="13">None</td>');}
     ?>
 
 
 
-
-    <tr   class="active" >
-        <th>#</th>
-        <th>Type</th>
-        <th>Date/Time (Y/M/D)</th>
-        <th colspan>Description</th>
-    </tr>
-    <?php
-    foreach ($error as $row)
-    {
-        echo("<tr>");
-        echo("<td>" . htmlspecialchars($row["uid"]) . "</td>");
-        echo("<td>" . htmlspecialchars(strtoupper($row["type"])) . "</td>");
-        echo("<td>" . htmlspecialchars(date('Y-m-d H:i:s',strtotime($row["date"]))) . "</td>");
-        echo("<td>" . htmlspecialchars($row["description"]) . "</td>");
-        echo("</tr>");
-    }
-    if($error==null){echo('<td colspan="7">None</td>');}
-
-    ?>
 
 </table>
 
