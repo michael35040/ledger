@@ -15,14 +15,14 @@ if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser,
                         'trade', 
                         $payer, $symbol, $negquantity, $reference,
                         $payee, $symbol, $quantity, $reference,
-                        0, 'transfer-remove payer') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); } }
+                        0, 'transfer-remove payer') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 //GIVE
 if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note) 
                         VALUES (?,?,?,?,?,?,?,?,?,?,?)", 
                         'trade', 
                         $payee, $symbol, $quantity, $reference,
                         $payer, $symbol, $negquantity, $reference,
-                        0, 'transfer-give payee') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); } }
+                        0, 'transfer-give payee') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 
 }
 
@@ -104,7 +104,7 @@ function placeOrder($symbol, $type, $side, $quantity, $price, $id)
     catch(Exception $e) {apologize($e->getMessage());}
 
     //RETURN
-    return array($transaction, $symbol, $tradeAmount, $quantity);
+    return;
 }
 
 
@@ -116,12 +116,16 @@ function placeOrder($symbol, $type, $side, $quantity, $price, $id)
 ////////////////////////////////////
 function cancelOrder($uid)
 {
-query("SET AUTOCOMMIT=0"); query("START TRANSACTION;"); 
-if (query("UPDATE orderbook SET status=2 WHERE uid=?", $uid) === false) {
-query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Failure Cancel");
-query("COMMIT;"); query("SET AUTOCOMMIT=1");
+    query("SET AUTOCOMMIT=0");
+    query("START TRANSACTION;");
+    if (query("UPDATE orderbook SET status=2 WHERE uid=?", $uid) === false) {
+        query("ROLLBACK");
+        query("SET AUTOCOMMIT=1");
+        throw new Exception("Failure Cancel");
+        query("COMMIT;");
+        query("SET AUTOCOMMIT=1");
+    }
 }
-
 
 
 ////////////////////////////////////
@@ -413,28 +417,28 @@ if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser,
                         'trade', 
                         $topAskUser, $symbol, $negtradeSize, $reference,
                         $topBidUser, $unittype, $tradeAmount, $reference,
-                        0, 'ask-remove shares') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); } }
+                        0, 'ask-remove shares') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 //GIVE BIDDER SHARES
 if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note) 
                         VALUES (?,?,?,?,?,?,?,?,?,?,?)", 
                         'trade', 
                         $topBidUser, $symbol, $tradeSize, $reference,
-                        $tobAskUser, $unittype, $negtradeAmount, $reference,
-                        0, 'bid-give shares') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); } }
+                        $topAskUser, $unittype, $negtradeAmount, $reference,
+                        0, 'bid-give shares') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 //REMOVE BIDDER UNITS
 if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note) 
                         VALUES (?,?,?,?,?,?,?,?,?,?,?)", 
                         'trade', 
                         $topBidUser, $unittype, $negtradeAmount, $reference,
                         $topAskUser, $symbol, $tradeSize, $reference,
-                        0, 'bid-remove units') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); } }
+                        0, 'bid-remove units') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 //GIVE ASK UNITS
 if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note) 
                         VALUES (?,?,?,?,?,?,?,?,?,?,?)", 
                         'trade', 
                         $topAskUser, $unittype, $tradeAmount, $reference,
                         $topBidUser, $symbol, $negtradeSize, $reference,
-                        0, 'ask-give units') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); } }
+                        0, 'ask-give units') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 //COMMISSION
 $negCommission=($commissionAmount*-1);
 if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note) 
@@ -442,13 +446,13 @@ if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser,
                         'trade', 
                         $adminid, $unittype, $commissionAmount, $reference,
                         $topBidUser, $unittype, $negCommission, $reference,
-                        0, 'admin-give commission') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); } }
+                        0, 'admin-give commission') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note) 
                         VALUES (?,?,?,?,?,?,?,?,?,?,?)", 
                         'trade', 
                         $topBidUser, $unittype, $negCommission, $reference,
                         $adminid, $unittype, $commissionAmount, $reference,
-                        0, 'bid-remove commission') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); } }
+                        0, 'bid-remove commission') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 
 
             //ALL THINGS OKAY, COMMIT TRANSACTIONS
@@ -648,7 +652,7 @@ if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser,
                         'trade', 
                         $userid, $symbol, $ownersQuantity, $reference,
                         $adminid, $unittype, 0, $reference,
-                        0, 'IPO') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); } }
+                        0, 'IPO') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 
 //INSERT FEE SHARES INTO PORTFOLIO OF ADMIN
 if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note) 
@@ -656,7 +660,7 @@ if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser,
                         'trade', 
                         $adminid, $symbol, $feeQuantity, $reference,
                         $userid, $unittype, 0, $reference,
-                        0, 'IPO Fee') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); } }
+                        0, 'IPO Fee') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 
     query("COMMIT;"); //If no errors, commit changes
     query("SET AUTOCOMMIT=1");
@@ -697,7 +701,7 @@ if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser,
                         'trade', 
                         $userid, $symbol, $ownersQuantity, $reference,
                         $adminid, $unittype, 0, $reference,
-                        0, '2PO') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); } }
+                        0, '2PO') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 
 //INSERT FEE SHARES INTO PORTFOLIO OF ADMIN
 if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note) 
@@ -705,7 +709,7 @@ if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser,
                         'trade', 
                         $adminid, $symbol, $feeQuantity, $reference,
                         $userid, $unittype, 0, $reference,
-                        0, '2PO Fee') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); } }
+                        0, '2PO Fee') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 
 
     query("COMMIT;"); //If no errors, commit changes
@@ -751,7 +755,7 @@ if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser,
                         'trade', 
                         $userid, $symbol, $negIssued, $reference,
                         $userid, $unittype, 0, $reference,
-                        0, 'RO') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); } }
+                        0, 'RO') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 
 
     query("COMMIT;"); //If no errors, commit changes
