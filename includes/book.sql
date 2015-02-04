@@ -74,12 +74,12 @@ CREATE TABLE IF NOT EXISTS `ledger` (
   `user` int(9) NOT NULL COMMENT 'payee user id',
   `symbol` varchar(10) NOT NULL COMMENT 'asset symbol',
   `amount` int(20) NOT NULL COMMENT 'positive or negative sign',
-  `reference` varchar(32) NOT NULL COMMENT 'bid or ask uid or hash to group a trade of 4 entries',
+  `reference` varchar(64) NOT NULL COMMENT 'bid or ask uid or hash to group a trade of 4 entries',
   `xuser` int(9) NOT NULL COMMENT 'counter payer user id',
   `xsymbol` varchar(10) NOT NULL COMMENT 'FOR COST counter symbol',
   `xamount` int(20) NOT NULL COMMENT 'FOR COST counter positive or negative sign',
   `xreference` varchar(32) NOT NULL COMMENT 'bid or ask uid or hash to group a trade of 4 entries',
-  `status` varchar(32) NOT NULL COMMENT 'cleared, pending, canceled',
+  `status` varchar(32) NOT NULL COMMENT '1-open/pending, 0-closed/cleared/completed, 2-canceled',
   `note` varchar(32) NOT NULL COMMENT 'if canceled-reason',
   PRIMARY KEY (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS `orderbook` (
   `original` int(20) unsigned NOT NULL COMMENT 'original quantity',
   `quantity` int(20) NOT NULL COMMENT 'remaining quantity of order',
   `user` int(9) NOT NULL COMMENT 'user id',
-  `status` varchar(10) NOT NULL COMMENT 'open closed canceled',
+  `status` varchar(10) NOT NULL COMMENT '1-open/pending, 0-closed/cleared/completed, 2-canceled',
   PRIMARY KEY (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
