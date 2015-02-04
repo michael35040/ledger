@@ -15,15 +15,13 @@ if(isset($_POST['history']))
 } 
 
 //HISTORY
-$history = query("SELECT * FROM history WHERE (id = ? AND (TRANSACTION='TRANSFER' OR TRANSACTION='DEPOSIT' OR TRANSACTION='WITHDRAW')) ORDER BY uid DESC $limit", $id);
-$error = query("SELECT * FROM error WHERE (id = ?) ORDER BY uid DESC $limit", $id);
+$ledger = query("SELECT * FROM ledger WHERE (user=?) ORDER BY uid DESC $limit", $id);
 
 render(
     "history_form.php",
     [
         "title" => $title,
-        "history" => $history,
-        "error" => $error,
+        "ledger" => $ledger,
         "tabletitle" => $tabletitle,
     ]);
 
