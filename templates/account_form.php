@@ -3,6 +3,7 @@
 
 <?php
 $ledger = query("SELECT * FROM ledger");
+//$ledger = query("SELECT * FROM ledger WHERE (user=?)", $id);
 ?>
 
 
