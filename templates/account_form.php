@@ -4,6 +4,9 @@
 <?php
 $ledger = query("SELECT * FROM ledger");
 //$ledger = query("SELECT * FROM ledger WHERE (user=?)", $id);
+$units = query("SELECT SUM(amount) AS units FROM ledger WHERE (user=? AND symbol=?)", $user, $unittype);
+
+echo $units[0]["units"];
 ?>
 
 
