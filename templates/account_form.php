@@ -2,17 +2,25 @@
 
 
 <?php
+
+$id = $_SESSION["id"]; //get id from session
+
+
 $ledger = query("SELECT * FROM ledger");
 //$ledger = query("SELECT * FROM ledger WHERE (user=?)", $id);
-$units = query("SELECT SUM(amount) AS units FROM ledger WHERE (user=? AND symbol=?)", $user, $unittype);
-
-echo $units[0]["units"];
+$units = query("SELECT SUM(amount) AS units FROM ledger WHERE (user=? AND symbol=?)", $id, $unittype);
+$units = getPrice($units[0]["units"]);
 ?>
 
 
 <table class="table table-striped table-condensed table-bordered" >
+    <tr class="success">
+        <td colspan="3">Units</td>
+        <td colspan="10"><?php echo($unitsymbol . number_format($units, 2, '.', ',')); ?></span></td>
+
+    </tr>
     <tr  class="success">
-        <td colspan="3" style="font-size:20px; text-align: center;">LEDGER</td>
+        <td colspan="13" style="font-size:20px; text-align: center;">LEDGER</td>
     </tr>
     <tr>
         <td><strong>UID</strong></td>

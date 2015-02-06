@@ -6,23 +6,27 @@
 
 function transfer($payer, $payee, $quantity, $symbol)
 {
-$referenceID=($payer . $payee . $quantity); //concatenate
-$reference=uniqid($referenceID,true);  //unique id reference to trade   
-$negquantity=($quantity*-1);
+    require 'constants.php';
+
+    if($symbol==$unittype){$quantity=setPrice($quantity);} //if it is currency
+
+    $referenceID=($payer . $payee . $quantity); //concatenate
+    $reference=uniqid($referenceID,true);  //unique id reference to trade
+    $negquantity=($quantity*-1);
 //REMOVE
-if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note) 
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?)", 
-                        'trade', 
-                        $payer, $symbol, $negquantity, $reference,
-                        $payee, $symbol, $quantity, $reference,
-                        0, 'transfer-remove payer') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
+    if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            'trade',
+            $payer, $symbol, $negquantity, $reference,
+            $payee, $symbol, $quantity, $reference,
+            0, 'transfer-remove payer') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 //GIVE
-if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note) 
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?)", 
-                        'trade', 
-                        $payee, $symbol, $quantity, $reference,
-                        $payer, $symbol, $negquantity, $reference,
-                        0, 'transfer-give payee') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
+    if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            'trade',
+            $payee, $symbol, $quantity, $reference,
+            $payer, $symbol, $negquantity, $reference,
+            0, 'transfer-give payee') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 
 }
 
@@ -63,48 +67,62 @@ function getCommission($total)
 //PLACE ORDER
 ////////////////////////////////////
 function placeOrder($symbol, $type, $side, $quantity, $price, $id)
-{   require 'constants.php'; 
+{
+    require 'constants.php';
+
+    $price=setPrice($price);
+
 //CHECKS INPUT
 //CHECK FOR EMPTY VARIABLES
-    if(empty($symbol)) { throw new Exception("Invalid order. Trade symbol required."); } //check to see if empty
-    if (!ctype_alnum($symbol)) {throw new Exception("Symbol must be alphanumeric!");}
+    if(empty($symbol)) { apologize("Invalid order. Trade symbol required."); } //check to see if empty
+    if (!ctype_alnum($symbol)) {apologize("Symbol must be alphanumeric!");}
 //QUERY TO SEE IF SYMBOL EXISTS
     $symbolCheck = query("SELECT symbol FROM assets WHERE symbol =?", $symbol);
-    if (count($symbolCheck) != 1) {throw new Exception("Incorrect Symbol. Not listed on the exchange! (7)");} //row count
+    if (count($symbolCheck) != 1) {apologize("Incorrect Symbol. Not listed on the exchange! (7)");} //row count
     $symbol = strtoupper($symbol); //cast to UpperCase
-    if(empty($type)) { throw new Exception("Invalid order. Trade type required."); } //check to see if empty
-    if($type!='market' && $type!='limit' && $type!='marketprice'){ throw new Exception("Invalid order type."); }
-    if(empty($side)) { throw new Exception("Invalid order. Trade side required."); } //check to see if empty
-    if($side!='a' && $side!='b'){ throw new Exception("Invalid order side."); }
-    if(!ctype_alpha($type) || !ctype_alpha($side)) { throw new Exception("Type and side must be alphabetic!");} //if symbol is alpha (alnum for alphanumeric)
+    if(empty($type)) { apologize("Invalid order. Trade type required."); } //check to see if empty
+    if($type!='market' && $type!='limit' && $type!='marketprice'){ apologize("Invalid order type."); }
+    if(empty($side)) { apologize("Invalid order. Trade side required."); } //check to see if empty
+    if($side!='a' && $side!='b'){ apologize("Invalid order side."); }
+    if(!ctype_alpha($type) || !ctype_alpha($side)) { apologize("Type and side must be alphabetic!");} //if symbol is alpha (alnum for alphanumeric)
 //SET QUANTITY
     if($type!='marketprice')
     {
-        if(empty($quantity)) { throw new Exception("Invalid order. Trade quantity required."); } //check to see if empty
-        if($quantity>2000000000){ throw new Exception("Invalid order. Trade quantity exceeds limits."); }
-        if($quantity < 0){throw new Exception("Quantity must be positive!");}
-        if (preg_match("/^\d+$/", $quantity) == false) { throw new Exception("The quantity must enter a whole, positive integer."); } // if quantity is invalid (not a whole positive integer)
-        if (!is_int($quantity) ) { throw new Exception("Quantity must be numeric!");} //if quantity is numeric
+        if(empty($quantity)) { apologize("Invalid order. Trade quantity required."); } //check to see if empty
+        if($quantity>2000000000){ apologize("Invalid order. Trade quantity exceeds limits."); }
+        if($quantity < 0){apologize("Quantity must be positive!");}
+        if (preg_match("/^\d+$/", $quantity) == false) { apologize("The quantity must enter a whole, positive integer."); } // if quantity is invalid (not a whole positive integer)
+        if (!is_int($quantity) ) { apologize("Quantity must be numeric!");} //if quantity is numeric
     }
 //QUERY TO SEE IF USER EXISTS
-    if(empty($id)) { throw new Exception("Invalid order. User required."); } //check to see if empty
+    if(empty($id)) { apologize("Invalid order. User required."); } //check to see if empty
     $userCheck = query("SELECT count(id) as number FROM users WHERE id =?", $id);
-    if ($userCheck[0]["number"] != 1) {throw new Exception("No user exists!");} //row count
+    if ($userCheck[0]["number"] != 1) {apologize("No user exists!");} //row count
 
     query("SET AUTOCOMMIT=0");
     query("START TRANSACTION;"); //initiate a SQL transaction in case of error between transaction and commit
 
 //INSERT INTO ORDERBOOK
-    if (query("INSERT INTO orderbook (symbol, side, type, price, original, quantity, user, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", 
-        $symbol, $side, $type, $price, $quantity, $quantity, $id, 1) === false) 
-        { query("ROLLBACK");  query("SET AUTOCOMMIT=1"); throw new Exception("Insert Orderbook Failure"); }
+  //  apologize(var_dump(get_defined_vars()));
+
+    if (query("INSERT INTO orderbook (symbol, side, type, price, original, quantity, user, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            $symbol, $side, $type, $price, $quantity, $quantity, $id, 1) === false)
+    {
+        query("ROLLBACK");  query("SET AUTOCOMMIT=1");
+        apologize("Insert Orderbook Failure");
+    }
+
+    query("COMMIT;");
+    query("SET AUTOCOMMIT=1");
+
 
     //PROCESS ORDERBOOK
-    try {processOrderbook($symbol);}
-    catch(Exception $e) {apologize($e->getMessage());}
+//    try {processOrderbook($symbol);}
+//    catch(Exception $e) {apologize($e->getMessage());}
+
 
     //RETURN
-    return;
+    //return;
 }
 
 
@@ -259,8 +277,8 @@ function processOrderbook($symbol=null)
 //EXCHANGE MARKET
 ////////////////////////////////////
 function orderbook($symbol)
-{ 
-require 'constants.php';
+{
+    require 'constants.php';
     if($loud!='quiet'){echo("<br>[" . $symbol . "] Computing orderbook...");}
 
     //PROCESS MARKET ORDERS
@@ -303,7 +321,7 @@ require 'constants.php';
 
         if ($topBidPrice >= $topAskPrice) //TRADES ARE POSSIBLE
         { if($loud!='quiet'){echo("<br>[" . $symbol . "] Trade possible...");}
-        
+
             //START TRANSACTION
             query("SET AUTOCOMMIT=0");
             query("START TRANSACTION;"); //initiate a SQL transaction in case of error between transaction and commit
@@ -332,7 +350,7 @@ require 'constants.php';
 
             //BID INFO------
             // UPDATE BID ORDER //REMOVE units FUNDS
-            $BidUnitsQ = query("SELECT SUM(amount) AS total FROM ledger WHERE (user=? AND symbol=?", $topBidUser, $unittype); //$unittype (ie USD or XBT) is native currency set in constants.php
+            $BidUnitsQ = query("SELECT SUM(amount) AS total FROM ledger WHERE (user=? AND symbol=?)", $topBidUser, $unittype); //$unittype (ie USD or XBT) is native currency set in constants.php
             $BidUnits = (float)$BidUnitsQ[0]["total"];
 
             //IF BUYER DOESN'T HAVE ENOUGH FUNDS CANCEL ORDER
@@ -405,54 +423,54 @@ require 'constants.php';
             ///////////
             //ACCOUNTS
             ///////////
-            
-$referenceID=($topAskUID . $topBidUID . $tradeSize); //concatenate
-$reference=uniqid($referenceID,true);  //unique id reference to trade   
 
-$negtradeSize=($tradeSize*-1);
-$negtradeAmount=($tradeAmount*-1); //WHAT ABOUT COMMISSION
+            $referenceID=($topAskUID . $topBidUID . $tradeSize); //concatenate
+            $reference=uniqid($referenceID,true);  //unique id reference to trade
+
+            $negtradeSize=($tradeSize*-1);
+            $negtradeAmount=($tradeAmount*-1); //WHAT ABOUT COMMISSION
 //REMOVE ASK SHARES
-if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note) 
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?)", 
-                        'trade', 
-                        $topAskUser, $symbol, $negtradeSize, $reference,
-                        $topBidUser, $unittype, $tradeAmount, $reference,
-                        0, 'ask-remove shares') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
+            if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                    'trade',
+                    $topAskUser, $symbol, $negtradeSize, $reference,
+                    $topBidUser, $unittype, $tradeAmount, $reference,
+                    0, 'ask-remove shares') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 //GIVE BIDDER SHARES
-if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note) 
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?)", 
-                        'trade', 
-                        $topBidUser, $symbol, $tradeSize, $reference,
-                        $topAskUser, $unittype, $negtradeAmount, $reference,
-                        0, 'bid-give shares') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
+            if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                    'trade',
+                    $topBidUser, $symbol, $tradeSize, $reference,
+                    $topAskUser, $unittype, $negtradeAmount, $reference,
+                    0, 'bid-give shares') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 //REMOVE BIDDER UNITS
-if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note) 
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?)", 
-                        'trade', 
-                        $topBidUser, $unittype, $negtradeAmount, $reference,
-                        $topAskUser, $symbol, $tradeSize, $reference,
-                        0, 'bid-remove units') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
+            if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                    'trade',
+                    $topBidUser, $unittype, $negtradeAmount, $reference,
+                    $topAskUser, $symbol, $tradeSize, $reference,
+                    0, 'bid-remove units') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 //GIVE ASK UNITS
-if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note) 
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?)", 
-                        'trade', 
-                        $topAskUser, $unittype, $tradeAmount, $reference,
-                        $topBidUser, $symbol, $negtradeSize, $reference,
-                        0, 'ask-give units') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
+            if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                    'trade',
+                    $topAskUser, $unittype, $tradeAmount, $reference,
+                    $topBidUser, $symbol, $negtradeSize, $reference,
+                    0, 'ask-give units') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 //COMMISSION
-$negCommission=($commissionAmount*-1);
-if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note) 
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?)", 
-                        'trade', 
-                        $adminid, $unittype, $commissionAmount, $reference,
-                        $topBidUser, $unittype, $negCommission, $reference,
-                        0, 'admin-give commission') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
-if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note) 
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?)", 
-                        'trade', 
-                        $topBidUser, $unittype, $negCommission, $reference,
-                        $adminid, $unittype, $commissionAmount, $reference,
-                        0, 'bid-remove commission') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
+            $negCommission=($commissionAmount*-1);
+            if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                    'trade',
+                    $adminid, $unittype, $commissionAmount, $reference,
+                    $topBidUser, $unittype, $negCommission, $reference,
+                    0, 'admin-give commission') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
+            if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                    'trade',
+                    $topBidUser, $unittype, $negCommission, $reference,
+                    $adminid, $unittype, $commissionAmount, $reference,
+                    0, 'bid-remove commission') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 
 
             //ALL THINGS OKAY, COMMIT TRANSACTIONS
@@ -642,25 +660,25 @@ function publicOffering($symbol, $name, $userid, $issued, $type, $fee, $url, $ra
     if (query("INSERT INTO assets (`symbol`, `name`, `userid`, `fee`, `issued`, `url`, `type`, `rating`, `description`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", $symbol, $name, $userid, $fee, $issued, $url, $type, $rating, $description) === false)  //create IPO
     { query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Failure to insert into assets"); }
 
-$referenceID=($userid . $issued); //concatenate
-$reference=uniqid($referenceID,true);  //unique id reference to trade   
+    $referenceID=($userid . $issued); //concatenate
+    $reference=uniqid($referenceID,true);  //unique id reference to trade
 
 //INSERT SHARES INTO PORTFOLIO OF OWNER MINUS FEE
 //GIVE BIDDER SHARES
-if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note) 
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?)", 
-                        'trade', 
-                        $userid, $symbol, $ownersQuantity, $reference,
-                        $adminid, $unittype, 0, $reference,
-                        0, 'IPO') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
+    if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            'trade',
+            $userid, $symbol, $ownersQuantity, $reference,
+            $adminid, $unittype, 0, $reference,
+            0, 'IPO') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 
 //INSERT FEE SHARES INTO PORTFOLIO OF ADMIN
-if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note) 
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?)", 
-                        'trade', 
-                        $adminid, $symbol, $feeQuantity, $reference,
-                        $userid, $unittype, 0, $reference,
-                        0, 'IPO Fee') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
+    if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            'trade',
+            $adminid, $symbol, $feeQuantity, $reference,
+            $userid, $unittype, 0, $reference,
+            0, 'IPO Fee') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 
     query("COMMIT;"); //If no errors, commit changes
     query("SET AUTOCOMMIT=1");
@@ -691,25 +709,25 @@ function publicOffering2($symbol, $userid, $issued, $fee)
     {query("ROLLBACK"); query("SET AUTOCOMMIT=1");apologize("Failure to update assets"); }
 //INSERT SHARES INTO PORTFOLIO OF OWNER MINUS FEE
 
-$referenceID=($userid . $issued); //concatenate
-$reference=uniqid($referenceID,true);  //unique id reference to trade   
+    $referenceID=($userid . $issued); //concatenate
+    $reference=uniqid($referenceID,true);  //unique id reference to trade
 
 //INSERT SHARES INTO PORTFOLIO OF OWNER MINUS FEE
 //GIVE BIDDER SHARES
-if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note) 
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?)", 
-                        'trade', 
-                        $userid, $symbol, $ownersQuantity, $reference,
-                        $adminid, $unittype, 0, $reference,
-                        0, '2PO') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
+    if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            'trade',
+            $userid, $symbol, $ownersQuantity, $reference,
+            $adminid, $unittype, 0, $reference,
+            0, '2PO') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 
 //INSERT FEE SHARES INTO PORTFOLIO OF ADMIN
-if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note) 
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?)", 
-                        'trade', 
-                        $adminid, $symbol, $feeQuantity, $reference,
-                        $userid, $unittype, 0, $reference,
-                        0, '2PO Fee') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
+    if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            'trade',
+            $adminid, $symbol, $feeQuantity, $reference,
+            $userid, $unittype, 0, $reference,
+            0, '2PO Fee') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 
 
     query("COMMIT;"); //If no errors, commit changes
@@ -744,18 +762,18 @@ function removeQuantity($symbol, $userid, $issued)
     if ($userQuantity < $issued) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); apologize("User does not have enough for removal."); exit();} //update portfolio} //updates if stock already owned
 
 //INSERT TRADE 
-$referenceID=($userid . $issued); //concatenate
-$reference=uniqid($referenceID,true);  //unique id reference to trade   
+    $referenceID=($userid . $issued); //concatenate
+    $reference=uniqid($referenceID,true);  //unique id reference to trade
 
 //INSERT SHARES INTO PORTFOLIO OF OWNER MINUS FEE
 //GIVE BIDDER SHARES
-$negIssued=($issued*-1);
-if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note) 
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?)", 
-                        'trade', 
-                        $userid, $symbol, $negIssued, $reference,
-                        $userid, $unittype, 0, $reference,
-                        0, 'RO') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
+    $negIssued=($issued*-1);
+    if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser, xsymbol, xamount, xreference, status, note)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            'trade',
+            $userid, $symbol, $negIssued, $reference,
+            $userid, $unittype, 0, $reference,
+            0, 'RO') === false) {query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Ledger Insert Failure"); }
 
 
     query("COMMIT;"); //If no errors, commit changes
@@ -776,20 +794,20 @@ if (query("INSERT INTO ledger (category, user, symbol, amount, reference, xuser,
 ////////////////////////////////////
 function negativeValues()
 {   require 'constants.php';
-/*BROKEN-NEED TO CALCULATE TOTAL SINCE NO LONGER PART OF ORDER BOOK
-    $negativeValueOrderbook = query("SELECT quantity, total, uid FROM orderbook WHERE (quantity < 0 OR total < 0) LIMIT 0, 1");
-    if(!empty($negativeValueOrderbook)) {
-        throw new Exception("<br>Negative Orderbook Values! UID: " . $negativeValueOrderbook[0]["uid"] . ", Quantity: " . $negativeValueOrderbook[0]["quantity"] . ", Total: " . $negativeValueOrderbook[0]["total"]);}
-    //eventually all users order using id
-*/
-/*BROKEN-NEED TO CALCULATE USERS FUNDS FIRST
-    $negativeValueAccounts = query("SELECT units, id FROM accounts WHERE (units < 0) LIMIT 0, 1");
-    if(!empty($negativeValueAccounts))
-    {
-        if(query("UPDATE orderbook SET type = 2 WHERE user = ?", $negativeValueAccounts[0]["user"]) === false){ apologize("Unable to cancel all orders!"); }
-        throw new Exception("<br>Canceled All Users (ID:" . $negativeValueAccounts[0]["id"] . ") orders due to negative account balance. Current balance: " . $negativeValueAccounts[0]["units"]);}
-    //eventually all users order using id     throw new Exception(var_dump(get_defined_vars()));
-*/    
+    /*BROKEN-NEED TO CALCULATE TOTAL SINCE NO LONGER PART OF ORDER BOOK
+        $negativeValueOrderbook = query("SELECT quantity, total, uid FROM orderbook WHERE (quantity < 0 OR total < 0) LIMIT 0, 1");
+        if(!empty($negativeValueOrderbook)) {
+            throw new Exception("<br>Negative Orderbook Values! UID: " . $negativeValueOrderbook[0]["uid"] . ", Quantity: " . $negativeValueOrderbook[0]["quantity"] . ", Total: " . $negativeValueOrderbook[0]["total"]);}
+        //eventually all users order using id
+    */
+    /*BROKEN-NEED TO CALCULATE USERS FUNDS FIRST
+        $negativeValueAccounts = query("SELECT units, id FROM accounts WHERE (units < 0) LIMIT 0, 1");
+        if(!empty($negativeValueAccounts))
+        {
+            if(query("UPDATE orderbook SET type = 2 WHERE user = ?", $negativeValueAccounts[0]["user"]) === false){ apologize("Unable to cancel all orders!"); }
+            throw new Exception("<br>Canceled All Users (ID:" . $negativeValueAccounts[0]["id"] . ") orders due to negative account balance. Current balance: " . $negativeValueAccounts[0]["units"]);}
+        //eventually all users order using id     throw new Exception(var_dump(get_defined_vars()));
+    */
 }
 
 

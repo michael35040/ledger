@@ -27,7 +27,7 @@ $decimalplaces = 2;
 $commission = 00.02; //00.1 = 10%/00.01 = 1%/00.001 = 0.1%
 $divisor = 0.01; //increment of exchange
 
-$loud='quiet'; //quiet or loud
+$loud='loud'; //quiet or loud
 $environment='test'; // 'live' or 'test' //config.php
 
 //LOAN.php

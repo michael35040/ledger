@@ -21,7 +21,7 @@
 
     <thead>
     <tr class="success">
-        <td colspan="9" style="font-size:20px; text-align: center;">ORDERS (<?php echo(strtoupper($tabletitle)); ?>) &nbsp;
+        <td colspan="11" style="font-size:20px; text-align: center;">ORDERS (<?php echo(strtoupper($tabletitle)); ?>) &nbsp;
             <?php
             //	Display link to all history as long as your not already there
             if (isset($tabletitle))
@@ -57,9 +57,11 @@
         <th>Symbol</th>
         <th>Side</th>
         <th>Type</th>
-        <th>Quantity</th>
         <th>Price</th>
-        <th>Total</th>
+        <th>Original</th>
+        <th>Quantity</th>
+        <th>User</th>
+        <th>Status</th>
     </tr>
     </thead>
 
@@ -75,7 +77,6 @@
     foreach ($orders as $row)
     {
         $price = getPrice($row["price"]);
-        $total = getPrice($row["total"]);
         $color="";
         if($row["side"]=="b"){$row["side"]='bid';$color="style='background-color:#F0FFFF;'";}
         if($row["side"]=="a"){$row["side"]='ask';$color="style='background-color:#FFF0FF;'";}
@@ -87,14 +88,16 @@
         //echo("<td " . $color . ">" . htmlspecialchars(strtoupper($row["symbol"])) . "</td>");
         echo("<td " . $color . ">" . htmlspecialchars(strtoupper($row["side"])) . "</td>");
         echo("<td " . $color . ">" . htmlspecialchars(strtoupper($row["type"])) . "</td>");
-        echo("<td " . $color . ">" . number_format($row["quantity"], 0, ".", ",") . "</td>");
         echo("<td " . $color . ">" . $unitsymbol . number_format($price, $decimalplaces, ".", ",") . "</td>");
-        echo("<td " . $color . ">" . $unitsymbol . number_format($total, $decimalplaces, ".", ",") . "</td>");
+        echo("<td " . $color . ">" . number_format($row["original"], 0, ".", ",") . "</td>");
+        echo("<td " . $color . ">" . number_format($row["quantity"], 0, ".", ",") . "</td>");
+        echo("<td " . $color . ">" . number_format($row["user"], 0, ".", ",") . "</td>");
+        echo("<td " . $color . ">" . number_format($row["status"], 0, ".", ",") . "</td>");
         echo("</tr>");
         $OrderNumber++;
 
-        $OrderQuantity=$OrderQuantity+$row["quantity"];
         /*
+        $OrderQuantity=$OrderQuantity+$row["quantity"];
         $OrderPrice=$OrderPrice+$row["price"];
         $OrderTotal=$OrderTotal+$row["total"];
         */
@@ -105,15 +108,11 @@
     }
     else
     {
-        $ordertotal = getPrice($ordertotal[0]["sumtotal"]);
         ?>
         <tr  class="danger" style="font-weight: bold;">
             <td>
                 <form method="post" action="orders.php"><button type="submit" class="btn btn-danger btn-xs" name="cancel" value="ALL"><span class="glyphicon glyphicon-remove-circle"></span></button></form></td>
-            <td colspan='5'><?php echo(number_format($OrderNumber, 0, ".", ",")) ?> open orders</td>
-            <td><?php echo(number_format($OrderQuantity, 0, ".", ",")) ?></td>
-            <td></td>
-            <td><?php echo($unitsymbol . number_format($ordertotal, $decimalplaces, ".", ",")) ?></td>
+            <td colspan='10'><?php echo(number_format($OrderNumber, 0, ".", ",")) ?> open orders</td>
         </tr>
     <?php
     }

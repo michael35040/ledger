@@ -211,12 +211,6 @@ if (!isset($commission)) //set in constants.php
 </TABLE>
 
 
-        <a href="convert.php">
-            <button type="button" class="btn btn-danger btn-xs">
-                Basic
-            </button>
-        </a>
-
 
     </fieldset>
 </form>

@@ -36,9 +36,9 @@ else
     foreach ($assets as $row)		// for each of user's stocks
     {   $stock = [];
         $stock["symbol"] = $row["symbol"]; //set variable from stock info
-        $stocksQ =	query("SELECT SUM(AMOUNT) AS quantity FROM ledger WHERE (user=? AND symbol =? and status=0)", $id, $assets["symbol"]);	  // query user's portfolio
-        $stock["quantity"] = $stocksQ["quantity"];
-        $askQuantity =	query("SELECT SUM(quantity) AS quantity FROM orderbook WHERE (user=? AND symbol =? AND side='a')", $id, $assets["symbol"]);	  // query user's portfolio
+        $stocksQ =	query("SELECT SUM(amount) AS quantity FROM ledger WHERE (user=? AND symbol =? and status=0)", $id, $row["symbol"]);	  // query user's portfolio
+        $stock["quantity"] = $stocksQ[0]["quantity"];
+        $askQuantity =	query("SELECT SUM(quantity) AS quantity FROM orderbook WHERE (user=? AND symbol =? AND side='a')", $id, $row["symbol"]);	  // query user's portfolio
         $askQuantity = $askQuantity[0]["quantity"]; //shares trading
         $stock["locked"] = (int)$askQuantity;
         $stocks[] = $stock;

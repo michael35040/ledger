@@ -223,6 +223,7 @@ $asset["dividend"]=0; //until we get real ones
 } // else render quote_form
 else
 {
+    //UPDATE: NEED TO EITHER SORT THROUGH EACH ASSET AND CALCULATE TOTAL OR DO A GROUP BY AND THEN LIST.
     $allStocks =	query("SELECT symbol, quantity FROM portfolio WHERE id = ? ORDER BY symbol ASC", $id);	  // query user's portfolio
     $stocks = [];
     foreach ($allStocks as $row)		// for each of user's stocks

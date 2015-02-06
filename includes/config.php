@@ -20,7 +20,11 @@ require("functions_testing.php"); //functions for testing
      *
      * Configures pages.
      **********************************************************************/
+//FOR TESTING ENVIRONMENT
+ini_set("display_errors", 1);// display errors, warnings, and notices
+error_reporting(E_ALL); //when testing site
 
+/*
 	if($environment=='live')
 	{
 	//FOR LIVE ENVIRONMENT
@@ -29,10 +33,9 @@ require("functions_testing.php"); //functions for testing
 	}
 	else
 	{
-	//FOR TESTING ENVIRONMENT
-	ini_set("display_errors", 1);// display errors, warnings, and notices
-	error_reporting(E_ALL); //when testing site
+
 	}
+*/
 
     // require authentication for most pages
     if (!preg_match("{(?:login|logout|register)\.php$}", $_SERVER["PHP_SELF"]))
