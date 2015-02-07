@@ -297,7 +297,7 @@ function drawChart()
             */
             if($owner['total']>0)
             {
-             echo("['User: " . $owner['id'] . "', " . number_format($owner['total'], 0, '.', '') . "],");
+             echo("['User: " . $owner['user'] . "', " . number_format($owner['quantity'], 0, '.', '') . "],");
             }
         }
       //   ['Work',     11],
@@ -1103,13 +1103,13 @@ else{ ?>
         $i=0; $listedOwned=0;
         foreach ($ownership2 as $row)
         {   $i++;
-            $percentage=($row["total"]/$asset["public"])*100;
+            $percentage=($row["quantity"]/$asset["public"])*100;
             echo("<tr>");
-            echo("<td>" . (number_format($row["id"],0,".",",")) . "</td>");
-            echo("<td>" . (number_format($row["total"],0,".",",")) . "</td>");
+            echo("<td>" . (number_format($row["user"],0,".",",")) . "</td>");
+            echo("<td>" . (number_format($row["quantity"],0,".",",")) . "</td>");
             echo("<td>" . (number_format($percentage,2,".",",")) . "%</td>");
             echo("</tr>");
-            $listedOwned = $listedOwned+$row["total"];
+            $listedOwned = $listedOwned+$row["quantity"];
             if($i==5){break;}
         }
         
