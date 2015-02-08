@@ -15,13 +15,13 @@ if(isset($_POST['history']))
 } 
 
 //HISTORY
-$ledger = query("SELECT * FROM ledger WHERE (user=?) ORDER BY uid DESC $limit", $id);
+//$ledger = query("SELECT * FROM ledger WHERE (user=?) ORDER BY uid DESC $limit", $id);
 
 render(
     "ledger_form.php",
     [
         "title" => $title,
-        "ledger" => $ledger,
+        //"ledger" => $ledger,
         "tabletitle" => $tabletitle,
     ]);
 

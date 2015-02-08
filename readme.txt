@@ -1,3 +1,10 @@
+TO DO:
+Orders-Remove from Ledger and add to order. WHen Order is fullfilled, add it to the new user on ledger. Sync using same ref number.
+
+use grains (480 grains to ounce).
+
+have 4 main metals for assets (gold, silver, platinum, pallidium).
+
 
 =========
 LEDGER

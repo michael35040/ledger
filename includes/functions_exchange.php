@@ -358,7 +358,7 @@ function orderbook($symbol)
             {
                 //IF MARKET ADJUST THE TRADESIZE DOWN IF USER DOESNT HAVE ENOUGH FUNDS.
                 //CHECK TO SEE IF MARKET ORDER (if $bidtype='market')
-                if($topBidType='market') {
+                if($topBidType=='market') {
                     //IF LESS THAN 1, WE CANT GO SMALLER SO CANCEL
                     if ($tradeSize <= 1) {
                         query("ROLLBACK");
@@ -394,7 +394,7 @@ function orderbook($symbol)
                             query("ROLLBACK");
                             query("SET AUTOCOMMIT=1");
                             cancelOrder($topBidUID);
-                            throw new Exception("Buyer does not have enough funds. Buyers orders deleted (1)");}
+                            throw new Exception("Buyer does not have enough funds ($BidUnits, $tradeAmount, $commissionAmount). Buyers orders deleted (1)");}
                     }
                 }
                 //IF LIMIT AND NOT MARKET JUST DELETE ORDER DUE TO LACK OF FUNDS
@@ -403,7 +403,7 @@ function orderbook($symbol)
                     query("ROLLBACK");
                     query("SET AUTOCOMMIT=1");
                     cancelOrder($topBidUID);
-                    throw new Exception("Buyer does not have enough funds. Buyers orders deleted (2)");
+                    throw new Exception("Buyer does not have enough funds ($BidUnits, $tradeAmount, $commissionAmount). Buyers orders deleted (2)");
                 }
             }
 
@@ -413,6 +413,12 @@ function orderbook($symbol)
             $orderbookQuantity = (int)$orderbookQuantity[0]["quantity"];
             //IF SELLER TRYING TO SELL MORE THEN THEY OWN CANCEL ORDER
             if ($tradeSize > $orderbookQuantity) { query("ROLLBACK"); query("SET AUTOCOMMIT=1"); cancelOrder($topAskUID); throw new Exception("$topAskUser Seller does not have enough quantity. Seller's order deleted."); }
+
+
+            //UPDATE STATUS
+            //if tradesize = askorder size set status =0 else status=1
+            //if tradesize == bidorder size set status =0 else status=1
+
 
             //UPDATE ASK ORDER //REMOVE QUANTITY
             if (query("UPDATE orderbook SET quantity=(quantity-?) WHERE uid=?", $tradeSize, $topAskUID) === false){query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Size OB Failure: #3"); } //rollback on failure

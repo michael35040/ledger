@@ -232,7 +232,7 @@ else
         $stock = [];
         $stock["symbol"] = $row["symbol"];
         $stock["quantity"] = $row["quantity"];
-            $askQuantity =	query("SELECT SUM(quantity) AS quantity FROM orderbook WHERE id=? AND symbol =? AND side='a'", $id, $row["symbol"]);	  // query user's portfolio
+            $askQuantity =	query("SELECT SUM(quantity) AS quantity FROM orderbook WHERE user=? AND symbol =? AND side='a'", $id, $row["symbol"]);	  // query user's portfolio
             if(empty($askQuantity[0]["quantity"])){$askQuantity[0]["quantity"]=0;}
         $stock["locked"] = $askQuantity[0]["quantity"]; //shares trading
 

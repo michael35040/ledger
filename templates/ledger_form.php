@@ -55,6 +55,8 @@
     </tr>
 
     <?php
+    $ledger = query("SELECT * FROM ledger WHERE ORDER BY uid DESC");
+
     foreach ($ledger as $row)
     {
 
@@ -64,11 +66,13 @@
         echo("<td>" . htmlspecialchars($row["category"]) . "</td>");
         echo("<td>" . htmlspecialchars($row["user"]) . "</td>");
         echo("<td>" . htmlspecialchars(strtoupper($row["symbol"])) . "</td>");
-        echo("<td>" . $unitsymbol . (number_format(getPrice($row["amount"]),$decimalplaces,".",",")) . "</td>");
+        if($row["symbol"]==$unittype){echo("<td>" . $unitsymbol . (number_format(getPrice($row["amount"]),$decimalplaces,".",",")) . "</td>");}
+        else{echo("<td>" . (number_format(($row["amount"]),0,".",",")) . "</td>");}
         echo("<td>" . htmlspecialchars($row["reference"]) . "</td>");
         echo("<td>" . htmlspecialchars($row["xuser"]) . "</td>");
         echo("<td>" . htmlspecialchars(strtoupper($row["xsymbol"])) . "</td>");
-        echo("<td>" . $unitsymbol . (number_format(getPrice($row["xamount"]),$decimalplaces,".",",")) . "</td>");
+        if($row["symbol"]==$unittype){echo("<td>" . $unitsymbol . (number_format(getPrice($row["xamount"]),$decimalplaces,".",",")) . "</td>");}
+        else{echo("<td>" . (number_format(($row["xamount"]),0,".",",")) . "</td>");}
         echo("<td>" . htmlspecialchars($row["xreference"]) . "</td>");
         echo("<td>" . htmlspecialchars($row["status"]) . "</td>");
         echo("<td>" . htmlspecialchars($row["note"]) . "</td>");

@@ -55,6 +55,8 @@ $units = getPrice($units[0]["units"]);
         $note = $row["note"];
 
 
+
+
         ?>
         <tr>
             <td><?php echo(number_format($uid, 0, '.', ',')); ?></span></td>
@@ -62,11 +64,17 @@ $units = getPrice($units[0]["units"]);
             <td><?php echo(htmlspecialchars($category)); ?></td>
             <td><?php echo(number_format($user, 0, '.', ',')); ?></span></td>
             <td><?php echo(htmlspecialchars($symbol)); ?></td>
-            <td><?php echo(number_format($amount, 2, '.', ',')); ?></span></td>
+            <?php
+            if($row["symbol"]==$unittype){echo("<td>" . $unitsymbol . (number_format(getPrice($row["amount"]),$decimalplaces,".",",")) . "</td>");}
+            else{echo("<td>" . (number_format(($row["amount"]),0,".",",")) . "</td>");}
+            ?>
             <td><?php echo(htmlspecialchars($reference)); ?></td>
             <td><?php echo(number_format($xuser, 0, '.', ',')); ?></span></td>
             <td><?php echo(htmlspecialchars($xsymbol)); ?></td>
-            <td><?php echo(number_format($xamount, 2, '.', ',')); ?></span></td>
+            <?php
+            if($row["symbol"]==$unittype){echo("<td>" . $unitsymbol . (number_format(getPrice($row["xamount"]),$decimalplaces,".",",")) . "</td>");}
+            else{echo("<td>" . (number_format(($row["xamount"]),0,".",",")) . "</td>");}
+            ?>
             <td><?php echo(htmlspecialchars($xreference)); ?></td>
             <td><?php echo(htmlspecialchars($status)); ?></td>
             <td><?php echo(htmlspecialchars($note)); ?></td>
