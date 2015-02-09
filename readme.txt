@@ -5,6 +5,11 @@ use grains (480 grains to ounce).
 
 have 4 main metals for assets (gold, silver, platinum, pallidium).
 
+basic is xbt or metal in and xbt or metal out.
+
+become market maker
+charge 1% commission
+
 
 =========
 LEDGER
