@@ -162,6 +162,7 @@ CREATE TABLE IF NOT EXISTS `orderbook` (
   `quantity` int(20) NOT NULL COMMENT 'remaining quantity of order',
   `user` int(9) NOT NULL COMMENT 'user id',
   `status` varchar(10) NOT NULL COMMENT '1-open/pending, 0-closed/cleared/completed, 2-canceled',
+  `total` bigint(20) unsigned NOT NULL COMMENT 'if bid order fund amount that is locked',
   PRIMARY KEY (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
