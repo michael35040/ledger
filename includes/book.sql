@@ -79,6 +79,8 @@ CREATE TABLE IF NOT EXISTS `ledger` (
   `xsymbol` varchar(10) NOT NULL COMMENT 'FOR COST counter symbol',
   `xamount` int(20) NOT NULL COMMENT 'FOR COST counter positive or negative sign',
   `xreference` varchar(32) NOT NULL COMMENT 'bid or ask uid or hash to group a trade of 4 entries',
+  `askuid` int(10) NULL DEFAULT NULL COMMENT 'if trade link to ask',
+  `biduid` int(10) NULL DEFAULT NULL COMMENT 'if trade link to bid',
   `status` varchar(32) NOT NULL COMMENT '1-open/pending, 0-closed/cleared/completed, 2-canceled',
   `note` varchar(32) NOT NULL COMMENT 'if canceled-reason',
   PRIMARY KEY (`uid`)
