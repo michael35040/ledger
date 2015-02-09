@@ -490,6 +490,25 @@ function orderbook($symbol)
 //SECTION 
 //HERE
 
+/*
+    $zeroQuantityCheck = query("SELECT quantity FROM ledger WHERE uid =?", $topBidUID);
+    if $zeroQuantityCheck < 0) 
+    {
+        //MAKE IT ERROR OR MAKE STATUS 2 AND ROLLBACK TRADE BASED ON REFERENCE???
+    }
+
+
+    if $zeroQuantityCheck == 0) 
+    {
+        if (query("UPDATE orderbook SET quantity=(quantity-?) WHERE uid=?", $tradeSize, $topAskUID) === false){query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Size OB Failure: #3"); } //rollback on failure
+    } //row count
+
+    
+    if (query("UPDATE orderbook SET quantity=(quantity-?) WHERE uid=?", $tradeSize, $topBidUID) === false){query("ROLLBACK"); query("SET AUTOCOMMIT=1"); throw new Exception("Update Quantity Failure: #1"); }
+
+
+*/
+
 
             //LAST TRADE INFO TO RETURN ON FUNCTION
             $orderbook['topAskPrice'] = ($asks[0]["price"]); //limit price
