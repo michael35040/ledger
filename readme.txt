@@ -7,8 +7,15 @@ have 4 main metals for assets (gold, silver, platinum, pallidium).
 
 basic is xbt or metal in and xbt or metal out.
 
-become market maker
-charge 1% commission
+can probably remove xreference
+
+price in usd or xbt? maybe xbt to trade but have a value in $
+
+
+PROFIT:
+become market maker +10%/-10% of market
+charge 1% trade commission
+
 
 
 =========
